@@ -49,7 +49,7 @@ test("create job maps Zapier fields to the public job payload", async () => {
       date: "2026-05-04",
       assigneeUsername: "worker@example.com",
       placeId: "place_1",
-      priority: 2,
+      priority: "2",
       contactName: "Customer",
       contactPhone: "+15555550123",
       contactEmail: "customer@example.com",
@@ -80,6 +80,22 @@ test("create job maps Zapier fields to the public job payload", async () => {
       end: "17:00"
     }
   });
+});
+
+test("create job rejects invalid priority before calling API", async () => {
+  const helper = makeZapier({ data: { items: [{ id: "job_1" }] } });
+
+  await assert.rejects(
+    () => App.creates.create_job.operation.perform(helper.z, {
+      authData,
+      inputData: {
+        title: "Install",
+        priority: "high"
+      }
+    }),
+    /Priority must be a number between 0 and 10/
+  );
+  assert.equal(helper.calls.length, 0);
 });
 
 test("update job uses PATCH /jobs with id in the public job payload", async () => {

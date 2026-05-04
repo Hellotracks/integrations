@@ -4,6 +4,7 @@ const assert = require("node:assert/strict");
 const test = require("node:test");
 const {
   cleanObject,
+  normalizeJobPayload,
   normalizeBaseUrl,
   testAuth,
   createJob,
@@ -24,6 +25,27 @@ function jsonResponse(status, payload) {
 
 test("normalizeBaseUrl removes trailing slashes", () => {
   assert.equal(normalizeBaseUrl("https://api.example.test/v1///"), "https://api.example.test/v1");
+});
+
+test("normalizeJobPayload converts numeric connector strings", () => {
+  assert.deepEqual(normalizeJobPayload({
+    title: "Job",
+    priority: "10",
+    onSiteDurationSeconds: "900",
+    location: { lat: "37.7749", lng: "-122.4194" }
+  }), {
+    title: "Job",
+    priority: 10,
+    onSiteDurationSeconds: 900,
+    location: { lat: 37.7749, lng: -122.4194 }
+  });
+});
+
+test("normalizeJobPayload rejects invalid priority text", () => {
+  assert.throws(
+    () => normalizeJobPayload({ priority: "high" }),
+    /Priority must be a number between 0 and 10/
+  );
 });
 
 test("cleanObject removes empty optional fields recursively", () => {
@@ -65,7 +87,8 @@ test("createJob sends API key and returns first created job", async () => {
   const job = await createJob(fetchImpl, { apiKey: "secret", apiBaseUrl: "https://qa.example.test/v1" }, {
     title: "Install",
     externalId: "crm-1",
-    assigneeUsername: "worker@example.com"
+    assigneeUsername: "worker@example.com",
+    priority: "2"
   });
 
   assert.equal(job.id, "job_1");
@@ -74,7 +97,8 @@ test("createJob sends API key and returns first created job", async () => {
   assert.deepEqual(JSON.parse(calls[0].request.body), {
     title: "Install",
     externalId: "crm-1",
-    assigneeUsername: "worker@example.com"
+    assigneeUsername: "worker@example.com",
+    priority: 2
   });
 });
 

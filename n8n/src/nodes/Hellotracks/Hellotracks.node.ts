@@ -7,7 +7,15 @@ import type {
 	IHttpRequestOptions,
 } from 'n8n-workflow';
 
-import { cleanObject, encodeQuery, extractResponseData, normalizeBaseUrl, type HellotracksCredentials } from './helpers';
+import {
+	cleanObject,
+	encodeQuery,
+	extractHttpErrorMessage,
+	extractResponseData,
+	normalizeBaseUrl,
+	normalizeJobPayload,
+	type HellotracksCredentials,
+} from './helpers';
 
 async function request(this: IExecuteFunctions, credentials: HellotracksCredentials, method: IHttpRequestOptions['method'], path: string, body?: IDataObject) {
 	const baseUrl = normalizeBaseUrl(credentials.apiBaseUrl);
@@ -28,7 +36,7 @@ async function request(this: IExecuteFunctions, credentials: HellotracksCredenti
 		const response = await this.helpers.httpRequest(options);
 		return extractResponseData(response as IDataObject);
 	} catch (error) {
-		const message = error instanceof Error ? error.message : String(error);
+		const message = extractHttpErrorMessage(error);
 		throw new Error(`Hellotracks ${method} ${path} failed: ${message}`);
 	}
 }
@@ -76,7 +84,7 @@ export class Hellotracks implements INodeType {
 			{ displayName: 'Job Date', name: 'date', type: 'string', default: '', description: 'YYYY-MM-DD, for example 2026-04-30.', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
 			{ displayName: 'Assignee Username', name: 'assigneeUsername', type: 'string', default: '', description: 'Hellotracks username, often the member email or login name.', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
 			{ displayName: 'Place ID', name: 'placeId', type: 'string', default: '', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
-			{ displayName: 'Priority', name: 'priority', type: 'string', default: '', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
+			{ displayName: 'Priority (0-10)', name: 'priority', type: 'number', default: undefined, typeOptions: { minValue: 0, maxValue: 10, numberPrecision: 0 }, displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
 			{ displayName: 'Contact Name', name: 'contactName', type: 'string', default: '', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
 			{ displayName: 'Contact Phone', name: 'contactPhone', type: 'string', default: '', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
 			{ displayName: 'Contact Email', name: 'contactEmail', type: 'string', default: '', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
@@ -101,7 +109,7 @@ export class Hellotracks implements INodeType {
 				date: this.getNodeParameter('date', i, '') as string,
 				assigneeUsername: this.getNodeParameter('assigneeUsername', i, '') as string,
 				placeId: this.getNodeParameter('placeId', i, '') as string,
-				priority: this.getNodeParameter('priority', i, '') as string,
+				priority: this.getNodeParameter('priority', i, '') as string | number,
 				contact: {
 					name: this.getNodeParameter('contactName', i, '') as string,
 					phone: this.getNodeParameter('contactPhone', i, '') as string,
@@ -114,10 +122,10 @@ export class Hellotracks implements INodeType {
 			};
 			let data;
 			if (operation === 'createJob') {
-				data = await request.call(this, credentials, 'POST', '/jobs', body);
+				data = await request.call(this, credentials, 'POST', '/jobs', normalizeJobPayload(body));
 			} else if (operation === 'updateJob') {
 				data = await request.call(this, credentials, 'PATCH', '/jobs', {
-					...body,
+					...normalizeJobPayload(body),
 					id: this.getNodeParameter('id', i) as string,
 				});
 			} else if (operation === 'archiveJob') {

@@ -6,7 +6,9 @@ const test = require("node:test");
 const {
   cleanObject,
   encodeQuery,
+  extractHttpErrorMessage,
   extractResponseData,
+  normalizeJobPayload,
   normalizeBaseUrl
 } = require("../dist/nodes/Hellotracks/helpers.js");
 
@@ -34,6 +36,27 @@ test("cleanObject removes empty optional fields recursively", () => {
   });
 });
 
+test("normalizeJobPayload converts numeric connector strings", () => {
+  assert.deepEqual(normalizeJobPayload({
+    title: "Job",
+    priority: "10",
+    onSiteDurationSeconds: "900",
+    location: { lat: "37.7749", lng: "-122.4194" }
+  }), {
+    title: "Job",
+    priority: 10,
+    onSiteDurationSeconds: 900,
+    location: { lat: 37.7749, lng: -122.4194 }
+  });
+});
+
+test("normalizeJobPayload rejects invalid priority text", () => {
+  assert.throws(
+    () => normalizeJobPayload({ priority: "high" }),
+    /Priority must be a number between 0 and 10/
+  );
+});
+
 test("extractResponseData unwraps public API data envelope", () => {
   assert.deepEqual(extractResponseData({ data: { items: [{ id: "job_1" }] } }), {
     items: [{ id: "job_1" }]
@@ -44,5 +67,21 @@ test("extractResponseData turns API error into readable error", () => {
   assert.throws(
     () => extractResponseData({ error: { message: "Unknown field job.assigneeUsername" } }),
     /Unknown field job\.assigneeUsername/
+  );
+});
+
+test("extractHttpErrorMessage includes public API error body", () => {
+  assert.equal(
+    extractHttpErrorMessage({
+      message: "Request failed with status code 400",
+      response: {
+        body: {
+          error: {
+            message: "job.priority must be a number between 0 and 10"
+          }
+        }
+      }
+    }),
+    "job.priority must be a number between 0 and 10"
   );
 });

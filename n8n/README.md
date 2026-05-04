@@ -1,8 +1,8 @@
 # Hellotracks n8n Node
 
-Private beta n8n community node for Hellotracks power-user workflows.
+Public beta n8n community node for Hellotracks power-user workflows.
 
-This package targets self-hosted or local n8n QA first. It is not submitted to the n8n Cloud community catalog yet.
+This package targets self-hosted n8n QA first. It is published to npm as an unverified community node package and is not submitted to the n8n Cloud community catalog yet.
 
 ## Credentials
 
@@ -24,6 +24,16 @@ The node sends the API key in the `API-Key` header.
 
 Create and update support `externalId`, `title`, `address`, `notes`, `date`, `assigneeUsername`, `placeId`, `priority`, contact fields, and time window fields.
 
+## Self-Hosted n8n Install
+
+In a self-hosted n8n instance with community nodes enabled, go to `Settings -> Community Nodes -> Install` and install:
+
+```text
+@hellotracks/n8n-nodes-hellotracks
+```
+
+Restart n8n if prompted. Open n8n, create a Hellotracks API credential, set `API Base URL` to `https://qa.hellotracks.com/v1`, then add the Hellotracks node to a workflow.
+
 ## Build And Pack
 
 ```bash
@@ -33,16 +43,14 @@ npm test
 npm pack
 ```
 
-## Local n8n Install
+## Local Tarball Install
 
 ```bash
 mkdir -p ~/.n8n/nodes
 cd ~/.n8n/nodes
-npm install /Users/bertschler/git/hellotracks/integrations/n8n/n8n-nodes-hellotracks-0.1.0.tgz
+npm install /Users/bertschler/git/hellotracks/integrations/n8n/hellotracks-n8n-nodes-hellotracks-0.1.0.tgz
 npx n8n@latest start
 ```
-
-Open n8n, create a Hellotracks API credential, set `API Base URL` to `https://qa.hellotracks.com/v1`, then add the Hellotracks node to a workflow.
 
 ## QA Smoke Test
 

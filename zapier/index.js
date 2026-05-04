@@ -39,7 +39,7 @@ const jobInputFields = [
   { key: "date", label: "Job date", helpText: "YYYY-MM-DD, for example 2026-04-30." },
   { key: "assigneeUsername", label: "Assignee username", helpText: "Hellotracks username, often the member's email or login name." },
   { key: "placeId", label: "Place ID" },
-  { key: "priority", label: "Priority", type: "integer" },
+  { key: "priority", label: "Priority (0-10)", type: "integer" },
   { key: "contactName", label: "Contact name" },
   { key: "contactPhone", label: "Contact phone" },
   { key: "contactEmail", label: "Contact email" },

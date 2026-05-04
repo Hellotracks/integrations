@@ -1,10 +1,9 @@
 {
-  "name": "n8n-nodes-hellotracks",
-  "version": "0.1.0",
-  "private": true,
+  "name": "@hellotracks/n8n-nodes-hellotracks",
+  "version": "0.1.1",
   "description": "Hellotracks n8n community node for private beta.",
   "main": "dist/nodes/Hellotracks/Hellotracks.node.js",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "keywords": [
     "n8n-community-node-package",
     "hellotracks",
@@ -19,6 +18,10 @@
     "dist",
     "README.md"
   ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json && cp src/nodes/Hellotracks/hellotracks.svg dist/nodes/Hellotracks/hellotracks.svg",
     "test": "npm run build && node --test test/*.test.cjs"

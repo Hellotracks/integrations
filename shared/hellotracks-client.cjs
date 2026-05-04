@@ -23,6 +23,59 @@ function cleanObject(value) {
   return cleaned;
 }
 
+function optionalInteger(value, field, min, max) {
+  if (value === undefined || value === null || value === "") {
+    return undefined;
+  }
+  const parsed = typeof value === "number" ? value : Number(String(value).trim());
+  if (!Number.isInteger(parsed) || parsed < min || parsed > max) {
+    throw new Error(`${field} must be a number between ${min} and ${max}`);
+  }
+  return parsed;
+}
+
+function optionalNonNegativeInteger(value, field) {
+  if (value === undefined || value === null || value === "") {
+    return undefined;
+  }
+  const parsed = typeof value === "number" ? value : Number(String(value).trim());
+  if (!Number.isInteger(parsed) || parsed < 0) {
+    throw new Error(`${field} must be a non-negative integer`);
+  }
+  return parsed;
+}
+
+function optionalNumber(value, field) {
+  if (value === undefined || value === null || value === "") {
+    return undefined;
+  }
+  const parsed = typeof value === "number" ? value : Number(String(value).trim());
+  if (!Number.isFinite(parsed)) {
+    throw new Error(`${field} must be a number`);
+  }
+  return parsed;
+}
+
+function normalizeJobPayload(job) {
+  const normalized = { ...job };
+  if ("priority" in normalized) {
+    normalized.priority = optionalInteger(normalized.priority, "Priority", 0, 10);
+  }
+  if ("onSiteDurationSeconds" in normalized) {
+    normalized.onSiteDurationSeconds = optionalNonNegativeInteger(normalized.onSiteDurationSeconds, "On-site duration seconds");
+  }
+  if (normalized.location && typeof normalized.location === "object" && !Array.isArray(normalized.location)) {
+    normalized.location = { ...normalized.location };
+    if ("lat" in normalized.location) {
+      normalized.location.lat = optionalNumber(normalized.location.lat, "Location latitude");
+    }
+    if ("lng" in normalized.location) {
+      normalized.location.lng = optionalNumber(normalized.location.lng, "Location longitude");
+    }
+  }
+  return normalized;
+}
+
 async function hellotracksRequest(fetchImpl, auth, method, path, body) {
   const apiKey = auth && auth.apiKey;
   if (!apiKey) {
@@ -68,12 +121,12 @@ async function listJobs(fetchImpl, auth, params = {}) {
 }
 
 async function createJob(fetchImpl, auth, job) {
-  const data = await hellotracksRequest(fetchImpl, auth, "POST", "/jobs", job);
+  const data = await hellotracksRequest(fetchImpl, auth, "POST", "/jobs", normalizeJobPayload(job));
   return (data.items || [])[0] || null;
 }
 
 async function updateJob(fetchImpl, auth, id, job) {
-  const data = await hellotracksRequest(fetchImpl, auth, "PATCH", "/jobs", { ...job, id });
+  const data = await hellotracksRequest(fetchImpl, auth, "PATCH", "/jobs", { ...normalizeJobPayload(job), id });
   return (data.items || [])[0] || null;
 }
 
@@ -106,6 +159,8 @@ module.exports = {
   DEFAULT_API_BASE,
   normalizeBaseUrl,
   cleanObject,
+  normalizeJobPayload,
+  optionalInteger,
   hellotracksRequest,
   listJobs,
   createJob,
