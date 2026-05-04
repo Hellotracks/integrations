@@ -47,7 +47,7 @@ test("create job maps Zapier fields to the public job payload", async () => {
       address: "123 Main St",
       notes: "Gate code 1234",
       date: "2026-05-04",
-      assigneeId: "worker_1",
+      assigneeUsername: "worker@example.com",
       placeId: "place_1",
       priority: 2,
       contactName: "Customer",
@@ -67,7 +67,7 @@ test("create job maps Zapier fields to the public job payload", async () => {
     address: "123 Main St",
     notes: "Gate code 1234",
     date: "2026-05-04",
-    assigneeId: "worker_1",
+    assigneeUsername: "worker@example.com",
     placeId: "place_1",
     priority: 2,
     contact: {

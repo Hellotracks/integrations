@@ -74,7 +74,7 @@ export class Hellotracks implements INodeType {
 			{ displayName: 'Address', name: 'address', type: 'string', default: '', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
 			{ displayName: 'Notes', name: 'notes', type: 'string', default: '', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
 			{ displayName: 'Job Date', name: 'date', type: 'string', default: '', description: 'YYYY-MM-DD, for example 2026-04-30.', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
-			{ displayName: 'Assignee ID', name: 'assigneeId', type: 'string', default: '', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
+			{ displayName: 'Assignee Username', name: 'assigneeUsername', type: 'string', default: '', description: 'Hellotracks username, often the member email or login name.', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
 			{ displayName: 'Search Query', name: 'query', type: 'string', default: '', displayOptions: { show: { operation: ['findMember'] } } },
 		],
 	};
@@ -91,7 +91,7 @@ export class Hellotracks implements INodeType {
 				address: this.getNodeParameter('address', i, '') as string,
 				notes: this.getNodeParameter('notes', i, '') as string,
 				date: this.getNodeParameter('date', i, '') as string,
-				assigneeId: this.getNodeParameter('assigneeId', i, '') as string,
+				assigneeUsername: this.getNodeParameter('assigneeUsername', i, '') as string,
 			};
 			let data;
 			if (operation === 'createJob') {

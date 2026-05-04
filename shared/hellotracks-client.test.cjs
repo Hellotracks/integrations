@@ -64,13 +64,18 @@ test("createJob sends API key and returns first created job", async () => {
 
   const job = await createJob(fetchImpl, { apiKey: "secret", apiBaseUrl: "https://qa.example.test/v1" }, {
     title: "Install",
-    externalId: "crm-1"
+    externalId: "crm-1",
+    assigneeUsername: "worker@example.com"
   });
 
   assert.equal(job.id, "job_1");
   assert.equal(calls[0].url, "https://qa.example.test/v1/jobs");
   assert.equal(calls[0].request.headers["API-Key"], "secret");
-  assert.equal(JSON.parse(calls[0].request.body).externalId, "crm-1");
+  assert.deepEqual(JSON.parse(calls[0].request.body), {
+    title: "Install",
+    externalId: "crm-1",
+    assigneeUsername: "worker@example.com"
+  });
 });
 
 test("updateJob sends PATCH with id", async () => {
