@@ -6,7 +6,7 @@ const {
   cleanObject,
   normalizeBaseUrl,
   createJob,
-  findJobByUidSecondary,
+  findJobByExternalId,
   findMember
 } = require("./hellotracks-client.cjs");
 
@@ -21,7 +21,7 @@ function jsonResponse(status, payload) {
 }
 
 test("normalizeBaseUrl removes trailing slashes", () => {
-  assert.equal(normalizeBaseUrl("https://api.example.test/api/public/v1///"), "https://api.example.test/api/public/v1");
+  assert.equal(normalizeBaseUrl("https://api.example.test/v1///"), "https://api.example.test/v1");
 });
 
 test("cleanObject removes empty optional fields recursively", () => {
@@ -41,31 +41,31 @@ test("createJob sends API key and returns first created job", async () => {
   const calls = [];
   const fetchImpl = async (url, request) => {
     calls.push({ url, request });
-    return jsonResponse(201, { data: { items: [{ id: "job_1", uidSecondary: "crm-1" }] } });
+    return jsonResponse(201, { data: { items: [{ id: "job_1", externalId: "crm-1" }] } });
   };
 
-  const job = await createJob(fetchImpl, { apiKey: "secret", apiBaseUrl: "https://qa.example.test/api/public/v1" }, {
+  const job = await createJob(fetchImpl, { apiKey: "secret", apiBaseUrl: "https://qa.example.test/v1" }, {
     title: "Install",
-    uidSecondary: "crm-1"
+    externalId: "crm-1"
   });
 
   assert.equal(job.id, "job_1");
-  assert.equal(calls[0].url, "https://qa.example.test/api/public/v1/jobs");
+  assert.equal(calls[0].url, "https://qa.example.test/v1/jobs");
   assert.equal(calls[0].request.headers["API-Key"], "secret");
-  assert.equal(JSON.parse(calls[0].request.body).uidSecondary, "crm-1");
+  assert.equal(JSON.parse(calls[0].request.body).externalId, "crm-1");
 });
 
-test("findJobByUidSecondary queries stable external id", async () => {
+test("findJobByExternalId queries stable external id", async () => {
   const calls = [];
   const fetchImpl = async (url, request) => {
     calls.push({ url, request });
-    return jsonResponse(200, { data: { items: [{ id: "job_2", uidSecondary: "crm-2" }] } });
+    return jsonResponse(200, { data: { items: [{ id: "job_2", externalId: "crm-2" }] } });
   };
 
-  const job = await findJobByUidSecondary(fetchImpl, { apiKey: "secret" }, "crm-2");
+  const job = await findJobByExternalId(fetchImpl, { apiKey: "secret" }, "crm-2");
 
   assert.equal(job.id, "job_2");
-  assert.match(calls[0].url, /uidSecondary=crm-2/);
+  assert.match(calls[0].url, /externalId=crm-2/);
   assert.match(calls[0].url, /includeArchived=true/);
 });
 

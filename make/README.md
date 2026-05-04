@@ -2,7 +2,7 @@
 
 This package contains the Make custom app blueprint for the Hellotracks no-code MVP.
 
-Import `app.json` into Make's custom app editor, configure the `API-Key` connection, and use the same `/api/public/v1` contract as Zapier and n8n.
+Import `app.json` into Make's custom app editor, configure the `API-Key` connection, and use the same `/v1` contract as Zapier and n8n.
 
 V1 modules:
 

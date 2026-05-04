@@ -2,7 +2,7 @@
   "name": "hellotracks",
   "label": "Hellotracks",
   "version": "0.1.0",
-  "baseUrl": "https://api.hellotracks.com/api/public/v1",
+  "baseUrl": "https://api.hellotracks.com/v1",
   "connection": {
     "type": "apiKey",
     "parameters": [
@@ -16,7 +16,7 @@
         "name": "apiBaseUrl",
         "type": "url",
         "label": "API Base URL",
-        "default": "https://api.hellotracks.com/api/public/v1",
+        "default": "https://api.hellotracks.com/v1",
         "required": false
       }
     ],
@@ -105,7 +105,7 @@
         "method": "GET",
         "url": "{{if(connection.apiBaseUrl; connection.apiBaseUrl; baseUrl)}}/jobs",
         "qs": {
-          "uidSecondary": "{{parameters.uidSecondary}}",
+          "externalId": "{{parameters.externalId}}",
           "includeArchived": "true",
           "limit": "1"
         }
@@ -118,7 +118,7 @@
       "type": "search",
       "request": {
         "method": "GET",
-        "url": "{{if(connection.apiBaseUrl; connection.apiBaseUrl; baseUrl)}}/accounts",
+        "url": "{{if(connection.apiBaseUrl; connection.apiBaseUrl; baseUrl)}}/members",
         "qs": {
           "query": "{{parameters.query}}",
           "max": "50"

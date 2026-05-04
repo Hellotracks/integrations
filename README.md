@@ -5,8 +5,8 @@ This directory contains connector packages for power-user automation platforms.
 The connector boundary is intentionally the public API:
 
 - API key auth via `API-Key`
-- `/api/public/v1/jobs`
-- `/api/public/v1/accounts`
+- `/v1/jobs`
+- `/v1/members`
 
 Do not route Zapier, Make, or n8n through `ExternalIntegrationService`. That service owns native managed integrations such as Monday, HubSpot, and Salesforce.
 
@@ -23,6 +23,6 @@ Do not route Zapier, Make, or n8n through `ExternalIntegrationService`. That ser
 - Update job
 - Archive job
 - Delete job
-- Find job by external ID (`uidSecondary`)
+- Find job by external ID (`externalId`)
 - Find member by exact email, username, name, or UID
-- Polling triggers for new, updated, completed, and archived/deleted jobs
+- Polling triggers for new, updated, and completed jobs

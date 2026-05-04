@@ -1,6 +1,6 @@
 "use strict";
 
-const DEFAULT_API_BASE = "https://api.hellotracks.com/api/public/v1";
+const DEFAULT_API_BASE = "https://api.hellotracks.com/v1";
 
 function normalizeBaseUrl(baseUrl) {
   return (baseUrl || DEFAULT_API_BASE).replace(/\/+$/, "");
@@ -81,13 +81,13 @@ async function deleteJob(fetchImpl, auth, id) {
   return (data.items || [])[0] || null;
 }
 
-async function findJobByUidSecondary(fetchImpl, auth, uidSecondary) {
-  const items = await listJobs(fetchImpl, auth, { uidSecondary, includeArchived: true, limit: 1 });
+async function findJobByExternalId(fetchImpl, auth, externalId) {
+  const items = await listJobs(fetchImpl, auth, { externalId, includeArchived: true, limit: 1 });
   return items[0] || null;
 }
 
 async function findMember(fetchImpl, auth, query) {
-  const data = await hellotracksRequest(fetchImpl, auth, "GET", `/accounts${encodeQuery({ query, max: 50 })}`);
+  const data = await hellotracksRequest(fetchImpl, auth, "GET", `/members${encodeQuery({ query, max: 50 })}`);
   const needle = String(query || "").trim().toLowerCase();
   return (data.items || []).find((member) => {
     return [member.id, member.username, member.email, member.name]
@@ -106,7 +106,7 @@ module.exports = {
   updateJob,
   archiveJob,
   deleteJob,
-  findJobByUidSecondary,
+  findJobByExternalId,
   findMember,
   testAuth
 };

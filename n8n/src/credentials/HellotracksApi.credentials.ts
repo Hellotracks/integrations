@@ -18,7 +18,7 @@ export class HellotracksApi implements ICredentialType {
 			displayName: 'API Base URL',
 			name: 'apiBaseUrl',
 			type: 'string',
-			default: 'https://api.hellotracks.com/api/public/v1',
+			default: 'https://api.hellotracks.com/v1',
 			required: true,
 		},
 	];

@@ -69,13 +69,12 @@ export class Hellotracks implements INodeType {
 				],
 			},
 			{ displayName: 'Job ID', name: 'id', type: 'string', default: '', displayOptions: { show: { operation: ['updateJob', 'archiveJob', 'deleteJob'] } } },
-			{ displayName: 'External ID', name: 'uidSecondary', type: 'string', default: '', displayOptions: { show: { operation: ['createJob', 'updateJob', 'findJob'] } } },
+			{ displayName: 'External ID', name: 'externalId', type: 'string', default: '', displayOptions: { show: { operation: ['createJob', 'updateJob', 'findJob'] } } },
 			{ displayName: 'Title', name: 'title', type: 'string', default: '', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
 			{ displayName: 'Address', name: 'address', type: 'string', default: '', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
 			{ displayName: 'Notes', name: 'notes', type: 'string', default: '', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
-			{ displayName: 'Job Day', name: 'day', type: 'number', default: 0, description: 'YYYYMMDD, for example 20260430.', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
-			{ displayName: 'Worker UID', name: 'workerUid', type: 'string', default: '', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
-			{ displayName: 'Worker Username', name: 'workerUsername', type: 'string', default: '', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
+			{ displayName: 'Job Date', name: 'date', type: 'string', default: '', description: 'YYYY-MM-DD, for example 2026-04-30.', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
+			{ displayName: 'Assignee ID', name: 'assigneeId', type: 'string', default: '', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
 			{ displayName: 'Search Query', name: 'query', type: 'string', default: '', displayOptions: { show: { operation: ['findMember'] } } },
 		],
 	};
@@ -87,13 +86,12 @@ export class Hellotracks implements INodeType {
 		for (let i = 0; i < inputItems.length; i++) {
 			const operation = this.getNodeParameter('operation', i) as string;
 			const body = {
-				uidSecondary: this.getNodeParameter('uidSecondary', i, '') as string,
+				externalId: this.getNodeParameter('externalId', i, '') as string,
 				title: this.getNodeParameter('title', i, '') as string,
 				address: this.getNodeParameter('address', i, '') as string,
 				notes: this.getNodeParameter('notes', i, '') as string,
-				day: this.getNodeParameter('day', i, 0) as number,
-				workerUid: this.getNodeParameter('workerUid', i, '') as string,
-				workerUsername: this.getNodeParameter('workerUsername', i, '') as string,
+				date: this.getNodeParameter('date', i, '') as string,
+				assigneeId: this.getNodeParameter('assigneeId', i, '') as string,
 			};
 			let data;
 			if (operation === 'createJob') {
@@ -108,11 +106,11 @@ export class Hellotracks implements INodeType {
 				const id = encodeURIComponent(this.getNodeParameter('id', i) as string);
 				data = await request.call(this, credentials, 'DELETE', `/jobs/${id}`);
 			} else if (operation === 'findJob') {
-				const uidSecondary = encodeURIComponent(this.getNodeParameter('uidSecondary', i) as string);
-				data = await request.call(this, credentials, 'GET', `/jobs?uidSecondary=${uidSecondary}&includeArchived=true&limit=1`);
+				const externalId = encodeURIComponent(this.getNodeParameter('externalId', i) as string);
+				data = await request.call(this, credentials, 'GET', `/jobs?externalId=${externalId}&includeArchived=true&limit=1`);
 			} else {
 				const query = encodeURIComponent(this.getNodeParameter('query', i) as string);
-				data = await request.call(this, credentials, 'GET', `/accounts?query=${query}&max=50`);
+				data = await request.call(this, credentials, 'GET', `/members?query=${query}&max=50`);
 			}
 			const items = Array.isArray(data.items) ? data.items : [data];
 			for (const item of items) {

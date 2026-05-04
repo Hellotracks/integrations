@@ -8,7 +8,7 @@ const {
   updateJob,
   archiveJob,
   deleteJob,
-  findJobByUidSecondary,
+  findJobByExternalId,
   findMember
 } = require("./shared/hellotracks-client.cjs");
 
@@ -33,31 +33,55 @@ const auth = (bundle) => ({
 
 const jobInputFields = [
   { key: "title", label: "Title", required: true },
-  { key: "uidSecondary", label: "External ID", helpText: "Stable ID from the source app. Hellotracks uses this for upsert/dedupe." },
+  { key: "externalId", label: "External ID", helpText: "Stable ID from the source app. Hellotracks uses this for upsert/dedupe." },
   { key: "address", label: "Address" },
   { key: "notes", label: "Notes" },
-  { key: "day", label: "Job day", type: "integer", helpText: "YYYYMMDD, for example 20260430." },
-  { key: "workerUid", label: "Worker UID" },
-  { key: "workerUsername", label: "Worker username" },
+  { key: "date", label: "Job date", helpText: "YYYY-MM-DD, for example 2026-04-30." },
+  { key: "assigneeId", label: "Assignee ID" },
+  { key: "placeId", label: "Place ID" },
   { key: "priority", label: "Priority", type: "integer" },
   { key: "contactName", label: "Contact name" },
   { key: "contactPhone", label: "Contact phone" },
   { key: "contactEmail", label: "Contact email" },
-  { key: "scheduledStart", label: "Window start", type: "integer", helpText: "HHMM time, for example 900." },
-  { key: "scheduledEnd", label: "Window end", type: "integer", helpText: "HHMM time, for example 1700." }
+  { key: "timeWindowStart", label: "Window start", helpText: "HH:mm time, for example 09:00." },
+  { key: "timeWindowEnd", label: "Window end", helpText: "HH:mm time, for example 17:00." }
 ];
 
 const jobOutputFields = [
   { key: "id", label: "Job ID" },
-  { key: "uidSecondary", label: "External ID" },
+  { key: "externalId", label: "External ID" },
   { key: "title", label: "Title" },
-  { key: "status", label: "Status" },
+  { key: "progress", label: "Progress" },
+  { key: "date", label: "Date" },
   { key: "createdAt", label: "Created at", type: "integer" },
   { key: "updatedAt", label: "Updated at", type: "integer" },
+  { key: "assignee.id", label: "Assignee ID" },
   { key: "assignee.email", label: "Assignee email" },
   { key: "address", label: "Address" },
-  { key: "contactEmail", label: "Contact email" }
+  { key: "contact.email", label: "Contact email" }
 ];
+
+function toJobPayload(input) {
+  return {
+    title: input.title,
+    externalId: input.externalId,
+    address: input.address,
+    notes: input.notes,
+    date: input.date,
+    assigneeId: input.assigneeId,
+    placeId: input.placeId,
+    priority: input.priority,
+    contact: {
+      name: input.contactName,
+      phone: input.contactPhone,
+      email: input.contactEmail
+    },
+    timeWindow: {
+      start: input.timeWindowStart,
+      end: input.timeWindowEnd
+    }
+  };
+}
 
 const performListJobs = (params) => async (z, bundle) => listJobs(fetchWithZapier(z), auth(bundle), {
   limit: 100,
@@ -90,7 +114,7 @@ const App = {
       },
       operation: {
         perform: performListJobs({ createdSince: 0 }),
-        sample: { id: "job_id", title: "Example job", status: "active", uidSecondary: "external-123" },
+        sample: { id: "job_id", title: "Example job", progress: "scheduled", externalId: "external-123" },
         outputFields: jobOutputFields
       }
     },
@@ -103,7 +127,7 @@ const App = {
       },
       operation: {
         perform: performListJobs({ updatedSince: 0 }),
-        sample: { id: "job_id", title: "Example job", status: "active", updatedAt: 1777560000000 },
+        sample: { id: "job_id", title: "Example job", progress: "scheduled", updatedAt: 1777560000000 },
         outputFields: jobOutputFields
       }
     },
@@ -116,22 +140,8 @@ const App = {
       },
       operation: {
         perform: async (z, bundle) => (await performListJobs({ updatedSince: 0 })(z, bundle))
-          .filter((job) => job.progress && job.progress.completed),
-        sample: { id: "job_id", title: "Example completed job", status: "completed" },
-        outputFields: jobOutputFields
-      }
-    },
-    archived_or_deleted_job: {
-      key: "archived_or_deleted_job",
-      noun: "Job",
-      display: {
-        label: "Archived or Deleted Job",
-        description: "Triggers when a Hellotracks job is archived or deleted."
-      },
-      operation: {
-        perform: async (z, bundle) => (await performListJobs({ updatedSince: 0 })(z, bundle))
-          .filter((job) => job.status === "archived" || job.status === "deleted"),
-        sample: { id: "job_id", title: "Example archived job", status: "archived" },
+          .filter((job) => job.progress === "success"),
+        sample: { id: "job_id", title: "Example completed job", progress: "success" },
         outputFields: jobOutputFields
       }
     }
@@ -146,7 +156,7 @@ const App = {
       },
       operation: {
         inputFields: jobInputFields,
-        perform: (z, bundle) => createJob(fetchWithZapier(z), auth(bundle), bundle.inputData),
+        perform: (z, bundle) => createJob(fetchWithZapier(z), auth(bundle), toJobPayload(bundle.inputData)),
         sample: { id: "job_id", title: "Example job" },
         outputFields: jobOutputFields
       }
@@ -160,7 +170,7 @@ const App = {
       },
       operation: {
         inputFields: [{ key: "id", label: "Job ID", required: true }, ...jobInputFields],
-        perform: (z, bundle) => updateJob(fetchWithZapier(z), auth(bundle), bundle.inputData.id, bundle.inputData),
+        perform: (z, bundle) => updateJob(fetchWithZapier(z), auth(bundle), bundle.inputData.id, toJobPayload(bundle.inputData)),
         sample: { id: "job_id", title: "Updated job" },
         outputFields: jobOutputFields
       }
@@ -175,7 +185,7 @@ const App = {
       operation: {
         inputFields: [{ key: "id", label: "Job ID", required: true }],
         perform: (z, bundle) => archiveJob(fetchWithZapier(z), auth(bundle), bundle.inputData.id),
-        sample: { id: "job_id", status: "archived" },
+        sample: { id: "job_id" },
         outputFields: jobOutputFields
       }
     },
@@ -189,7 +199,7 @@ const App = {
       operation: {
         inputFields: [{ key: "id", label: "Job ID", required: true }],
         perform: (z, bundle) => deleteJob(fetchWithZapier(z), auth(bundle), bundle.inputData.id),
-        sample: { id: "job_id", status: "deleted" },
+        sample: { id: "job_id" },
         outputFields: jobOutputFields
       }
     }
@@ -203,9 +213,9 @@ const App = {
         description: "Finds a Hellotracks job by External ID."
       },
       operation: {
-        inputFields: [{ key: "uidSecondary", label: "External ID", required: true }],
-        perform: async (z, bundle) => asSearchResults(await findJobByUidSecondary(fetchWithZapier(z), auth(bundle), bundle.inputData.uidSecondary)),
-        sample: { id: "job_id", uidSecondary: "external-123" },
+        inputFields: [{ key: "externalId", label: "External ID", required: true }],
+        perform: async (z, bundle) => asSearchResults(await findJobByExternalId(fetchWithZapier(z), auth(bundle), bundle.inputData.externalId)),
+        sample: { id: "job_id", externalId: "external-123" },
         outputFields: jobOutputFields
       }
     },
