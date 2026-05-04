@@ -1,0 +1,9 @@
+{
+  "name": "@hellotracks/no-code-integrations",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Hellotracks no-code connector packages for Zapier, Make, and n8n.",
+  "scripts": {
+    "test": "node --test shared/*.test.cjs"
+  }
+}

@@ -1,0 +1,130 @@
+{
+  "name": "hellotracks",
+  "label": "Hellotracks",
+  "version": "0.1.0",
+  "baseUrl": "https://api.hellotracks.com/api/public/v1",
+  "connection": {
+    "type": "apiKey",
+    "parameters": [
+      {
+        "name": "apiKey",
+        "type": "password",
+        "label": "Hellotracks API Key",
+        "required": true
+      },
+      {
+        "name": "apiBaseUrl",
+        "type": "url",
+        "label": "API Base URL",
+        "default": "https://api.hellotracks.com/api/public/v1",
+        "required": false
+      }
+    ],
+    "authorization": {
+      "headers": {
+        "API-Key": "{{connection.apiKey}}",
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      }
+    }
+  },
+  "modules": [
+    {
+      "name": "watchJobs",
+      "label": "Watch Jobs",
+      "type": "trigger",
+      "request": {
+        "method": "GET",
+        "url": "{{if(connection.apiBaseUrl; connection.apiBaseUrl; baseUrl)}}/jobs",
+        "qs": {
+          "updatedSince": "{{if(parameters.updatedSince; parameters.updatedSince; 0)}}",
+          "includeArchived": "true",
+          "limit": "{{if(parameters.limit; parameters.limit; 100)}}"
+        }
+      },
+      "parameters": [
+        {
+          "name": "updatedSince",
+          "type": "number",
+          "label": "Updated since timestamp",
+          "required": false
+        },
+        {
+          "name": "limit",
+          "type": "number",
+          "label": "Limit",
+          "default": 100,
+          "required": false
+        }
+      ],
+      "iterate": "{{body.data.items}}"
+    },
+    {
+      "name": "createJob",
+      "label": "Create Job",
+      "type": "action",
+      "request": {
+        "method": "POST",
+        "url": "{{if(connection.apiBaseUrl; connection.apiBaseUrl; baseUrl)}}/jobs",
+        "body": "{{parameters}}"
+      }
+    },
+    {
+      "name": "updateJob",
+      "label": "Update Job",
+      "type": "action",
+      "request": {
+        "method": "PATCH",
+        "url": "{{if(connection.apiBaseUrl; connection.apiBaseUrl; baseUrl)}}/jobs/{{parameters.id}}",
+        "body": "{{omit(parameters; 'id')}}"
+      }
+    },
+    {
+      "name": "archiveJob",
+      "label": "Archive Job",
+      "type": "action",
+      "request": {
+        "method": "POST",
+        "url": "{{if(connection.apiBaseUrl; connection.apiBaseUrl; baseUrl)}}/jobs/{{parameters.id}}/archive"
+      }
+    },
+    {
+      "name": "deleteJob",
+      "label": "Delete Job",
+      "type": "action",
+      "request": {
+        "method": "DELETE",
+        "url": "{{if(connection.apiBaseUrl; connection.apiBaseUrl; baseUrl)}}/jobs/{{parameters.id}}"
+      }
+    },
+    {
+      "name": "findJob",
+      "label": "Find Job",
+      "type": "search",
+      "request": {
+        "method": "GET",
+        "url": "{{if(connection.apiBaseUrl; connection.apiBaseUrl; baseUrl)}}/jobs",
+        "qs": {
+          "uidSecondary": "{{parameters.uidSecondary}}",
+          "includeArchived": "true",
+          "limit": "1"
+        }
+      },
+      "iterate": "{{body.data.items}}"
+    },
+    {
+      "name": "findMember",
+      "label": "Find Member",
+      "type": "search",
+      "request": {
+        "method": "GET",
+        "url": "{{if(connection.apiBaseUrl; connection.apiBaseUrl; baseUrl)}}/accounts",
+        "qs": {
+          "query": "{{parameters.query}}",
+          "max": "50"
+        }
+      },
+      "iterate": "{{body.data.items}}"
+    }
+  ]
+}
