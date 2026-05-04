@@ -3,10 +3,25 @@
   "version": "0.1.0",
   "private": true,
   "description": "Hellotracks n8n community node for private beta.",
-  "main": "dist/index.js",
+  "main": "dist/nodes/Hellotracks/Hellotracks.node.js",
+  "license": "UNLICENSED",
+  "keywords": [
+    "n8n-community-node-package",
+    "hellotracks",
+    "n8n"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hellotracks/hellotracks.git",
+    "directory": "integrations/n8n"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "test": "npm run build"
+    "build": "tsc -p tsconfig.json && cp src/nodes/Hellotracks/hellotracks.svg dist/nodes/Hellotracks/hellotracks.svg",
+    "test": "npm run build && node --test test/*.test.cjs"
   },
   "n8n": {
     "nodes": [

@@ -7,13 +7,10 @@ import type {
 	IHttpRequestOptions,
 } from 'n8n-workflow';
 
-type Credentials = {
-	apiKey: string;
-	apiBaseUrl: string;
-};
+import { cleanObject, encodeQuery, extractResponseData, normalizeBaseUrl, type HellotracksCredentials } from './helpers';
 
-async function request(this: IExecuteFunctions, credentials: Credentials, method: string, path: string, body?: IDataObject) {
-	const baseUrl = credentials.apiBaseUrl.replace(/\/+$/, '');
+async function request(this: IExecuteFunctions, credentials: HellotracksCredentials, method: IHttpRequestOptions['method'], path: string, body?: IDataObject) {
+	const baseUrl = normalizeBaseUrl(credentials.apiBaseUrl);
 	const options: IHttpRequestOptions = {
 		method,
 		url: `${baseUrl}${path}`,
@@ -25,13 +22,15 @@ async function request(this: IExecuteFunctions, credentials: Credentials, method
 		json: true,
 	};
 	if (body) {
-		options.body = Object.fromEntries(Object.entries(body).filter(([, value]) => value !== undefined && value !== null && value !== ''));
+		options.body = cleanObject(body);
 	}
-	const response = await this.helpers.httpRequest(options);
-	if (response.error) {
-		throw new Error(response.error.message || 'Hellotracks request failed');
+	try {
+		const response = await this.helpers.httpRequest(options);
+		return extractResponseData(response as IDataObject);
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error);
+		throw new Error(`Hellotracks ${method} ${path} failed: ${message}`);
 	}
-	return response.data || response;
 }
 
 export class Hellotracks implements INodeType {
@@ -68,19 +67,28 @@ export class Hellotracks implements INodeType {
 					{ name: 'Find Member', value: 'findMember' },
 				],
 			},
-			{ displayName: 'Job ID', name: 'id', type: 'string', default: '', displayOptions: { show: { operation: ['updateJob', 'archiveJob', 'deleteJob'] } } },
-			{ displayName: 'External ID', name: 'externalId', type: 'string', default: '', displayOptions: { show: { operation: ['createJob', 'updateJob', 'findJob'] } } },
-			{ displayName: 'Title', name: 'title', type: 'string', default: '', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
+			{ displayName: 'Job ID', name: 'id', type: 'string', default: '', required: true, displayOptions: { show: { operation: ['updateJob', 'archiveJob', 'deleteJob'] } } },
+			{ displayName: 'External ID', name: 'externalId', type: 'string', default: '', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
+			{ displayName: 'Title', name: 'title', type: 'string', default: '', required: true, displayOptions: { show: { operation: ['createJob'] } } },
+			{ displayName: 'Title', name: 'title', type: 'string', default: '', displayOptions: { show: { operation: ['updateJob'] } } },
 			{ displayName: 'Address', name: 'address', type: 'string', default: '', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
 			{ displayName: 'Notes', name: 'notes', type: 'string', default: '', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
 			{ displayName: 'Job Date', name: 'date', type: 'string', default: '', description: 'YYYY-MM-DD, for example 2026-04-30.', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
 			{ displayName: 'Assignee Username', name: 'assigneeUsername', type: 'string', default: '', description: 'Hellotracks username, often the member email or login name.', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
-			{ displayName: 'Search Query', name: 'query', type: 'string', default: '', displayOptions: { show: { operation: ['findMember'] } } },
+			{ displayName: 'Place ID', name: 'placeId', type: 'string', default: '', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
+			{ displayName: 'Priority', name: 'priority', type: 'string', default: '', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
+			{ displayName: 'Contact Name', name: 'contactName', type: 'string', default: '', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
+			{ displayName: 'Contact Phone', name: 'contactPhone', type: 'string', default: '', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
+			{ displayName: 'Contact Email', name: 'contactEmail', type: 'string', default: '', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
+			{ displayName: 'Window Start', name: 'timeWindowStart', type: 'string', default: '', description: 'HH:mm time, for example 09:00.', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
+			{ displayName: 'Window End', name: 'timeWindowEnd', type: 'string', default: '', description: 'HH:mm time, for example 17:00.', displayOptions: { show: { operation: ['createJob', 'updateJob'] } } },
+			{ displayName: 'External ID', name: 'externalId', type: 'string', default: '', required: true, displayOptions: { show: { operation: ['findJob'] } } },
+			{ displayName: 'Email, Username, Name, or UID', name: 'query', type: 'string', default: '', required: true, displayOptions: { show: { operation: ['findMember'] } } },
 		],
 	};
 
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
-		const credentials = await this.getCredentials('hellotracksApi') as Credentials;
+		const credentials = await this.getCredentials('hellotracksApi') as HellotracksCredentials;
 		const inputItems = this.getInputData();
 		const results: INodeExecutionData[] = [];
 		for (let i = 0; i < inputItems.length; i++) {
@@ -92,13 +100,26 @@ export class Hellotracks implements INodeType {
 				notes: this.getNodeParameter('notes', i, '') as string,
 				date: this.getNodeParameter('date', i, '') as string,
 				assigneeUsername: this.getNodeParameter('assigneeUsername', i, '') as string,
+				placeId: this.getNodeParameter('placeId', i, '') as string,
+				priority: this.getNodeParameter('priority', i, '') as string,
+				contact: {
+					name: this.getNodeParameter('contactName', i, '') as string,
+					phone: this.getNodeParameter('contactPhone', i, '') as string,
+					email: this.getNodeParameter('contactEmail', i, '') as string,
+				},
+				timeWindow: {
+					start: this.getNodeParameter('timeWindowStart', i, '') as string,
+					end: this.getNodeParameter('timeWindowEnd', i, '') as string,
+				},
 			};
 			let data;
 			if (operation === 'createJob') {
 				data = await request.call(this, credentials, 'POST', '/jobs', body);
 			} else if (operation === 'updateJob') {
-				const id = encodeURIComponent(this.getNodeParameter('id', i) as string);
-				data = await request.call(this, credentials, 'PATCH', `/jobs/${id}`, body);
+				data = await request.call(this, credentials, 'PATCH', '/jobs', {
+					...body,
+					id: this.getNodeParameter('id', i) as string,
+				});
 			} else if (operation === 'archiveJob') {
 				const id = encodeURIComponent(this.getNodeParameter('id', i) as string);
 				data = await request.call(this, credentials, 'POST', `/jobs/${id}/archive`);
@@ -106,11 +127,16 @@ export class Hellotracks implements INodeType {
 				const id = encodeURIComponent(this.getNodeParameter('id', i) as string);
 				data = await request.call(this, credentials, 'DELETE', `/jobs/${id}`);
 			} else if (operation === 'findJob') {
-				const externalId = encodeURIComponent(this.getNodeParameter('externalId', i) as string);
-				data = await request.call(this, credentials, 'GET', `/jobs?externalId=${externalId}&includeArchived=true&limit=1`);
+				data = await request.call(this, credentials, 'GET', `/jobs${encodeQuery({
+					externalId: this.getNodeParameter('externalId', i) as string,
+					includeArchived: true,
+					limit: 1,
+				})}`);
 			} else {
-				const query = encodeURIComponent(this.getNodeParameter('query', i) as string);
-				data = await request.call(this, credentials, 'GET', `/members?query=${query}&max=50`);
+				data = await request.call(this, credentials, 'GET', `/members${encodeQuery({
+					query: this.getNodeParameter('query', i) as string,
+					max: 50,
+				})}`);
 			}
 			const items = Array.isArray(data.items) ? data.items : [data];
 			for (const item of items) {
