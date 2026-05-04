@@ -1,11 +1,11 @@
 {
   "name": "@hellotracks/zapier",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Hellotracks Zapier connector for private beta.",
   "main": "index.js",
   "scripts": {
-    "test": "node -e \"require('./index.js'); console.log('Zapier app loads')\"",
+    "test": "node --test index.test.js",
     "zapier:validate": "zapier validate",
     "zapier:test": "zapier test"
   },

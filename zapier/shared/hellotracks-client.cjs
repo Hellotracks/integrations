@@ -10,11 +10,17 @@ function cleanObject(value) {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     return value;
   }
-  return Object.fromEntries(
+  const cleaned = Object.fromEntries(
     Object.entries(value)
-      .filter(([, entry]) => entry !== undefined && entry !== null && entry !== "")
       .map(([key, entry]) => [key, cleanObject(entry)])
+      .filter(([, entry]) => {
+        if (entry === undefined || entry === null || entry === "") {
+          return false;
+        }
+        return !(entry && typeof entry === "object" && !Array.isArray(entry) && Object.keys(entry).length === 0);
+      })
   );
+  return cleaned;
 }
 
 async function hellotracksRequest(fetchImpl, auth, method, path, body) {
