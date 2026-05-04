@@ -2,14 +2,58 @@
   "name": "hellotracks",
   "label": "Hellotracks",
   "version": "0.1.0",
-  "baseUrl": "https://api.hellotracks.com/v1",
+  "description": "Create, update, find, archive, and watch Hellotracks jobs through the public API.",
+  "platformVersion": 2,
+  "base": {
+    "baseUrl": "{{if(connection.apiBaseUrl, connection.apiBaseUrl, 'https://api.hellotracks.com/v1')}}",
+    "headers": {
+      "API-Key": "{{connection.apiKey}}",
+      "Accept": "application/json",
+      "Content-Type": "application/json"
+    },
+    "response": {
+      "error": {
+        "type": "RuntimeError",
+        "message": "[{{statusCode}}] {{ifempty(body.error.message, body.message, body.error, body)}}",
+        "400": {
+          "type": "DataError",
+          "message": "[{{statusCode}}] {{ifempty(body.error.message, body.message, body.error, body)}}"
+        },
+        "401": {
+          "type": "InvalidAccessTokenError",
+          "message": "[{{statusCode}}] Invalid Hellotracks API key."
+        },
+        "403": {
+          "type": "InvalidAccessTokenError",
+          "message": "[{{statusCode}}] Hellotracks API key does not have access to this resource."
+        },
+        "429": {
+          "type": "RateLimitError",
+          "message": "[{{statusCode}}] Hellotracks API rate limit reached. Try again later."
+        },
+        "500": {
+          "type": "ConnectionError",
+          "message": "[{{statusCode}}] Hellotracks API is unavailable. Try again later."
+        }
+      }
+    },
+    "log": {
+      "sanitize": [
+        "request.headers.API-Key",
+        "connection.apiKey"
+      ]
+    }
+  },
   "connection": {
+    "name": "hellotracksApiKey",
+    "label": "Hellotracks API key",
     "type": "apiKey",
     "parameters": [
       {
         "name": "apiKey",
         "type": "password",
-        "label": "Hellotracks API Key",
+        "label": "Hellotracks API key",
+        "editable": true,
         "required": true
       },
       {
@@ -17,114 +61,568 @@
         "type": "url",
         "label": "API Base URL",
         "default": "https://api.hellotracks.com/v1",
-        "required": false
+        "editable": true,
+        "required": false,
+        "help": "Use https://qa.hellotracks.com/v1 for QA testing."
       }
     ],
-    "authorization": {
-      "headers": {
-        "API-Key": "{{connection.apiKey}}",
-        "Content-Type": "application/json",
-        "Accept": "application/json"
+    "communication": {
+      "url": "/auth/whoami",
+      "method": "GET",
+      "response": {
+        "output": "{{body.data}}"
       }
     }
   },
-  "modules": [
-    {
-      "name": "watchJobs",
-      "label": "Watch Jobs",
-      "type": "trigger",
-      "request": {
-        "method": "GET",
-        "url": "{{if(connection.apiBaseUrl; connection.apiBaseUrl; baseUrl)}}/jobs",
-        "qs": {
-          "updatedSince": "{{if(parameters.updatedSince; parameters.updatedSince; 0)}}",
-          "includeArchived": "true",
-          "limit": "{{if(parameters.limit; parameters.limit; 100)}}"
-        }
+  "common": {
+    "jobMappableParameters": [
+      {
+        "name": "title",
+        "type": "text",
+        "label": "Title",
+        "required": true
       },
-      "parameters": [
-        {
-          "name": "updatedSince",
-          "type": "number",
-          "label": "Updated since timestamp",
-          "required": false
-        },
-        {
-          "name": "limit",
-          "type": "number",
-          "label": "Limit",
-          "default": 100,
-          "required": false
-        }
-      ],
-      "iterate": "{{body.data.items}}"
-    },
+      {
+        "name": "externalId",
+        "type": "text",
+        "label": "External ID",
+        "help": "Stable ID from the source app. Hellotracks uses this for upsert and dedupe."
+      },
+      {
+        "name": "address",
+        "type": "text",
+        "label": "Address"
+      },
+      {
+        "name": "notes",
+        "type": "text",
+        "label": "Notes"
+      },
+      {
+        "name": "date",
+        "type": "text",
+        "label": "Job date",
+        "help": "YYYY-MM-DD, for example 2026-05-04."
+      },
+      {
+        "name": "assigneeUsername",
+        "type": "text",
+        "label": "Assignee username",
+        "help": "Hellotracks username, often the member's email or login name."
+      },
+      {
+        "name": "placeId",
+        "type": "text",
+        "label": "Place ID"
+      },
+      {
+        "name": "priority",
+        "type": "integer",
+        "label": "Priority (0-10)",
+        "help": "Optional integer from 0 to 10."
+      },
+      {
+        "name": "contactName",
+        "type": "text",
+        "label": "Contact name"
+      },
+      {
+        "name": "contactPhone",
+        "type": "text",
+        "label": "Contact phone"
+      },
+      {
+        "name": "contactEmail",
+        "type": "email",
+        "label": "Contact email"
+      },
+      {
+        "name": "timeWindowStart",
+        "type": "time",
+        "label": "Window start",
+        "help": "HH:mm, for example 09:00."
+      },
+      {
+        "name": "timeWindowEnd",
+        "type": "time",
+        "label": "Window end",
+        "help": "HH:mm, for example 17:00."
+      }
+    ],
+    "jobInterface": [
+      {
+        "name": "id",
+        "type": "text",
+        "label": "Job ID"
+      },
+      {
+        "name": "externalId",
+        "type": "text",
+        "label": "External ID"
+      },
+      {
+        "name": "title",
+        "type": "text",
+        "label": "Title"
+      },
+      {
+        "name": "progress",
+        "type": "text",
+        "label": "Progress"
+      },
+      {
+        "name": "date",
+        "type": "text",
+        "label": "Job date"
+      },
+      {
+        "name": "createdAt",
+        "type": "uinteger",
+        "label": "Created at"
+      },
+      {
+        "name": "updatedAt",
+        "type": "uinteger",
+        "label": "Updated at"
+      },
+      {
+        "name": "assignee",
+        "type": "collection",
+        "label": "Assignee",
+        "spec": [
+          {
+            "name": "id",
+            "type": "text",
+            "label": "Member UID"
+          },
+          {
+            "name": "username",
+            "type": "text",
+            "label": "Username"
+          },
+          {
+            "name": "email",
+            "type": "email",
+            "label": "Email"
+          },
+          {
+            "name": "name",
+            "type": "text",
+            "label": "Name"
+          }
+        ]
+      },
+      {
+        "name": "address",
+        "type": "text",
+        "label": "Address"
+      },
+      {
+        "name": "contact",
+        "type": "collection",
+        "label": "Contact",
+        "spec": [
+          {
+            "name": "name",
+            "type": "text",
+            "label": "Name"
+          },
+          {
+            "name": "phone",
+            "type": "text",
+            "label": "Phone"
+          },
+          {
+            "name": "email",
+            "type": "email",
+            "label": "Email"
+          }
+        ]
+      }
+    ]
+  },
+  "modules": [
     {
       "name": "createJob",
       "label": "Create Job",
       "type": "action",
-      "request": {
+      "connection": "hellotracksApiKey",
+      "description": "Creates or updates a Hellotracks job. If External ID matches an existing job, Hellotracks updates it.",
+      "communication": {
+        "url": "/jobs",
         "method": "POST",
-        "url": "{{if(connection.apiBaseUrl; connection.apiBaseUrl; baseUrl)}}/jobs",
-        "body": "{{parameters}}"
-      }
+        "body": {
+          "title": "{{parameters.title}}",
+          "externalId": "{{parameters.externalId}}",
+          "address": "{{parameters.address}}",
+          "notes": "{{parameters.notes}}",
+          "date": "{{parameters.date}}",
+          "assigneeUsername": "{{parameters.assigneeUsername}}",
+          "placeId": "{{parameters.placeId}}",
+          "priority": "{{parameters.priority}}",
+          "contact": {
+            "name": "{{parameters.contactName}}",
+            "phone": "{{parameters.contactPhone}}",
+            "email": "{{parameters.contactEmail}}"
+          },
+          "timeWindow": {
+            "start": "{{parameters.timeWindowStart}}",
+            "end": "{{parameters.timeWindowEnd}}"
+          }
+        },
+        "methodAction": "create",
+        "response": {
+          "output": "{{body.data.items[0]}}"
+        }
+      },
+      "mappableParameters": "{{common.jobMappableParameters}}",
+      "interface": "{{common.jobInterface}}",
+      "samples": [
+        {
+          "id": "job_uid",
+          "externalId": "source-123",
+          "title": "Example job",
+          "progress": "scheduled",
+          "date": "2026-05-04"
+        }
+      ]
     },
     {
       "name": "updateJob",
       "label": "Update Job",
       "type": "action",
-      "request": {
+      "connection": "hellotracksApiKey",
+      "description": "Updates a Hellotracks job by Job ID.",
+      "communication": {
+        "url": "/jobs",
         "method": "PATCH",
-        "url": "{{if(connection.apiBaseUrl; connection.apiBaseUrl; baseUrl)}}/jobs/{{parameters.id}}",
-        "body": "{{omit(parameters; 'id')}}"
-      }
+        "body": {
+          "id": "{{parameters.id}}",
+          "title": "{{parameters.title}}",
+          "externalId": "{{parameters.externalId}}",
+          "address": "{{parameters.address}}",
+          "notes": "{{parameters.notes}}",
+          "date": "{{parameters.date}}",
+          "assigneeUsername": "{{parameters.assigneeUsername}}",
+          "placeId": "{{parameters.placeId}}",
+          "priority": "{{parameters.priority}}",
+          "contact": {
+            "name": "{{parameters.contactName}}",
+            "phone": "{{parameters.contactPhone}}",
+            "email": "{{parameters.contactEmail}}"
+          },
+          "timeWindow": {
+            "start": "{{parameters.timeWindowStart}}",
+            "end": "{{parameters.timeWindowEnd}}"
+          }
+        },
+        "methodAction": "update",
+        "response": {
+          "output": "{{body.data.items[0]}}"
+        }
+      },
+      "mappableParameters": [
+        {
+          "name": "id",
+          "type": "text",
+          "label": "Job ID",
+          "required": true
+        },
+        {
+          "name": "title",
+          "type": "text",
+          "label": "Title"
+        },
+        {
+          "name": "externalId",
+          "type": "text",
+          "label": "External ID",
+          "help": "Stable ID from the source app. Hellotracks uses this for upsert and dedupe."
+        },
+        {
+          "name": "address",
+          "type": "text",
+          "label": "Address"
+        },
+        {
+          "name": "notes",
+          "type": "text",
+          "label": "Notes"
+        },
+        {
+          "name": "date",
+          "type": "text",
+          "label": "Job date",
+          "help": "YYYY-MM-DD, for example 2026-05-04."
+        },
+        {
+          "name": "assigneeUsername",
+          "type": "text",
+          "label": "Assignee username",
+          "help": "Hellotracks username, often the member's email or login name."
+        },
+        {
+          "name": "placeId",
+          "type": "text",
+          "label": "Place ID"
+        },
+        {
+          "name": "priority",
+          "type": "integer",
+          "label": "Priority (0-10)",
+          "help": "Optional integer from 0 to 10."
+        },
+        {
+          "name": "contactName",
+          "type": "text",
+          "label": "Contact name"
+        },
+        {
+          "name": "contactPhone",
+          "type": "text",
+          "label": "Contact phone"
+        },
+        {
+          "name": "contactEmail",
+          "type": "email",
+          "label": "Contact email"
+        },
+        {
+          "name": "timeWindowStart",
+          "type": "time",
+          "label": "Window start",
+          "help": "HH:mm, for example 09:00."
+        },
+        {
+          "name": "timeWindowEnd",
+          "type": "time",
+          "label": "Window end",
+          "help": "HH:mm, for example 17:00."
+        }
+      ],
+      "interface": "{{common.jobInterface}}",
+      "samples": [
+        {
+          "id": "job_uid",
+          "externalId": "source-123",
+          "title": "Updated example job",
+          "progress": "scheduled",
+          "date": "2026-05-04"
+        }
+      ]
     },
     {
       "name": "archiveJob",
       "label": "Archive Job",
       "type": "action",
-      "request": {
+      "connection": "hellotracksApiKey",
+      "description": "Archives a Hellotracks job by Job ID.",
+      "communication": {
+        "url": "/jobs/{{parameters.id}}/archive",
         "method": "POST",
-        "url": "{{if(connection.apiBaseUrl; connection.apiBaseUrl; baseUrl)}}/jobs/{{parameters.id}}/archive"
-      }
+        "methodAction": "update",
+        "response": {
+          "output": "{{body.data.items[0]}}"
+        }
+      },
+      "mappableParameters": [
+        {
+          "name": "id",
+          "type": "text",
+          "label": "Job ID",
+          "required": true
+        }
+      ],
+      "interface": "{{common.jobInterface}}",
+      "samples": [
+        {
+          "id": "job_uid",
+          "title": "Archived example job",
+          "progress": "archived"
+        }
+      ]
     },
     {
       "name": "deleteJob",
       "label": "Delete Job",
       "type": "action",
-      "request": {
+      "connection": "hellotracksApiKey",
+      "description": "Deletes a Hellotracks job by Job ID.",
+      "communication": {
+        "url": "/jobs/{{parameters.id}}",
         "method": "DELETE",
-        "url": "{{if(connection.apiBaseUrl; connection.apiBaseUrl; baseUrl)}}/jobs/{{parameters.id}}"
-      }
+        "methodAction": "delete",
+        "response": {
+          "output": "{{ifempty(body.data.items[0], {'id': parameters.id})}}"
+        }
+      },
+      "mappableParameters": [
+        {
+          "name": "id",
+          "type": "text",
+          "label": "Job ID",
+          "required": true
+        }
+      ],
+      "interface": [
+        {
+          "name": "id",
+          "type": "text",
+          "label": "Job ID"
+        }
+      ],
+      "samples": [
+        {
+          "id": "job_uid"
+        }
+      ]
     },
     {
       "name": "findJob",
       "label": "Find Job",
       "type": "search",
-      "request": {
+      "connection": "hellotracksApiKey",
+      "description": "Finds a Hellotracks job by External ID.",
+      "communication": {
+        "url": "/jobs",
         "method": "GET",
-        "url": "{{if(connection.apiBaseUrl; connection.apiBaseUrl; baseUrl)}}/jobs",
         "qs": {
           "externalId": "{{parameters.externalId}}",
           "includeArchived": "true",
           "limit": "1"
+        },
+        "response": {
+          "iterate": "{{body.data.items}}",
+          "limit": 1,
+          "output": "{{item}}"
         }
       },
-      "iterate": "{{body.data.items}}"
+      "mappableParameters": [
+        {
+          "name": "externalId",
+          "type": "text",
+          "label": "External ID",
+          "required": true
+        }
+      ],
+      "interface": "{{common.jobInterface}}",
+      "samples": [
+        {
+          "id": "job_uid",
+          "externalId": "source-123",
+          "title": "Example job"
+        }
+      ]
     },
     {
       "name": "findMember",
       "label": "Find Member",
       "type": "search",
-      "request": {
+      "connection": "hellotracksApiKey",
+      "description": "Finds a Hellotracks member by email, username, name, or UID.",
+      "communication": {
+        "url": "/members",
         "method": "GET",
-        "url": "{{if(connection.apiBaseUrl; connection.apiBaseUrl; baseUrl)}}/members",
         "qs": {
           "query": "{{parameters.query}}",
           "max": "50"
+        },
+        "response": {
+          "iterate": "{{body.data.items}}",
+          "limit": 50,
+          "output": "{{item}}"
         }
       },
-      "iterate": "{{body.data.items}}"
+      "mappableParameters": [
+        {
+          "name": "query",
+          "type": "text",
+          "label": "Email, username, name, or UID",
+          "required": true
+        }
+      ],
+      "interface": [
+        {
+          "name": "id",
+          "type": "text",
+          "label": "Member UID"
+        },
+        {
+          "name": "username",
+          "type": "text",
+          "label": "Username"
+        },
+        {
+          "name": "email",
+          "type": "email",
+          "label": "Email"
+        },
+        {
+          "name": "name",
+          "type": "text",
+          "label": "Name"
+        }
+      ],
+      "samples": [
+        {
+          "id": "member_uid",
+          "username": "worker@example.com",
+          "email": "worker@example.com",
+          "name": "Worker"
+        }
+      ]
+    },
+    {
+      "name": "watchJobs",
+      "label": "Watch Jobs",
+      "type": "trigger",
+      "connection": "hellotracksApiKey",
+      "description": "Watches newly updated Hellotracks jobs using polling.",
+      "communication": {
+        "url": "/jobs",
+        "method": "GET",
+        "qs": {
+          "updatedSince": "{{parameters.updatedSince}}",
+          "includeArchived": "true",
+          "limit": "{{parameters.limit}}"
+        },
+        "response": {
+          "iterate": "{{body.data.items}}",
+          "trigger": {
+            "id": "{{item.id}}",
+            "date": "{{item.updatedAt}}",
+            "type": "date",
+            "order": "desc"
+          },
+          "output": "{{item}}"
+        }
+      },
+      "staticParameters": [
+        {
+          "name": "updatedSince",
+          "type": "timestamp",
+          "label": "Updated since",
+          "default": 0,
+          "required": false,
+          "help": "For QA, leave blank or use an epoch timestamp to backfill recent jobs."
+        },
+        {
+          "name": "limit",
+          "type": "uinteger",
+          "label": "Limit",
+          "default": 100,
+          "required": false
+        }
+      ],
+      "interface": "{{common.jobInterface}}",
+      "samples": [
+        {
+          "id": "job_uid",
+          "externalId": "source-123",
+          "title": "Example updated job",
+          "updatedAt": 1777896000000
+        }
+      ]
     }
   ]
 }

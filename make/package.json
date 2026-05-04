@@ -1,0 +1,9 @@
+{
+  "name": "@hellotracks/make",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Hellotracks Make custom-app blueprint for private QA.",
+  "scripts": {
+    "test": "node scripts/validate-app.cjs"
+  }
+}
