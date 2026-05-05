@@ -38,7 +38,6 @@ const jobInputFields = [
   { key: "notes", label: "Notes" },
   { key: "date", label: "Job date", helpText: "YYYY-MM-DD, for example 2026-04-30." },
   { key: "assigneeUsername", label: "Assignee username", helpText: "Hellotracks username, often the member's email or login name." },
-  { key: "placeId", label: "Place ID" },
   { key: "priority", label: "Priority (0-10)", type: "integer" },
   { key: "contactName", label: "Contact name" },
   { key: "contactPhone", label: "Contact phone" },
@@ -68,7 +67,6 @@ function toJobPayload(input) {
     notes: input.notes,
     date: input.date,
     assigneeUsername: input.assigneeUsername,
-    placeId: input.placeId,
     priority: input.priority,
     contact: {
       name: input.contactName,

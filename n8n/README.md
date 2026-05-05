@@ -22,7 +22,7 @@ The node sends the API key in the `API-Key` header.
 - Find Job: `GET /jobs?externalId=...&includeArchived=true&limit=1`
 - Find Member: `GET /members?query=...&max=50`
 
-Create and update support `externalId`, `title`, `address`, `notes`, `date`, `assigneeUsername`, `placeId`, `priority`, contact fields, and time window fields.
+Create and update support `externalId`, `title`, `address`, `notes`, `date`, `assigneeUsername`, `priority`, contact fields, and time window fields.
 
 ## Self-Hosted n8n Install
 
