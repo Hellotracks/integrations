@@ -1,18 +1,31 @@
-import type { ICredentialType, INodeProperties } from 'n8n-workflow';
+import type {
+	IAuthenticateGeneric,
+	ICredentialTestRequest,
+	ICredentialType,
+	INodeProperties,
+} from 'n8n-workflow';
 
 export class HellotracksApi implements ICredentialType {
 	name = 'hellotracksApi';
 	displayName = 'Hellotracks API';
 	icon = 'file:../nodes/Hellotracks/hellotracks.svg' as const;
 	documentationUrl = 'https://api-docs.hellotracks.com';
-	test = {
-		request: {
-			method: 'GET' as const,
-			url: 'https://api.hellotracks.com/v1/auth/whoami',
+
+	authenticate: IAuthenticateGeneric = {
+		type: 'generic',
+		properties: {
 			headers: {
 				'API-Key': '={{$credentials.apiKey}}',
 				Accept: 'application/json',
 			},
+		},
+	};
+
+	test: ICredentialTestRequest = {
+		request: {
+			method: 'GET',
+			baseURL: 'https://api.hellotracks.com/v1',
+			url: '/auth/whoami',
 		},
 	};
 

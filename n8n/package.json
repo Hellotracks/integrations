@@ -1,6 +1,6 @@
 {
   "name": "@hellotracks/n8n-nodes-hellotracks",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Hellotracks n8n community node for job dispatch workflows.",
   "main": "dist/nodes/Hellotracks/Hellotracks.node.js",
   "license": "MIT",

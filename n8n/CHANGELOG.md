@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.8
+
+- Add explicit n8n credential authentication and typed credential test metadata for verifier checks.
+
 ## 0.1.7
 
 - Mirror n8n credential and node files at the repository root for the Creator Portal verifier.

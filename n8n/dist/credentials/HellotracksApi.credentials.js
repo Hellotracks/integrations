@@ -7,14 +7,20 @@ class HellotracksApi {
         this.displayName = 'Hellotracks API';
         this.icon = 'file:../nodes/Hellotracks/hellotracks.svg';
         this.documentationUrl = 'https://api-docs.hellotracks.com';
-        this.test = {
-            request: {
-                method: 'GET',
-                url: 'https://api.hellotracks.com/v1/auth/whoami',
+        this.authenticate = {
+            type: 'generic',
+            properties: {
                 headers: {
                     'API-Key': '={{$credentials.apiKey}}',
                     Accept: 'application/json',
                 },
+            },
+        };
+        this.test = {
+            request: {
+                method: 'GET',
+                baseURL: 'https://api.hellotracks.com/v1',
+                url: '/auth/whoami',
             },
         };
         this.properties = [
