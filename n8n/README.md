@@ -9,7 +9,7 @@ This package targets self-hosted n8n QA first. It is published to npm as an unve
 Create a Hellotracks credential with:
 
 - API Key: a Hellotracks public API key
-- API Base URL: `https://qa.hellotracks.com/v1` for QA or `https://api.hellotracks.com/v1` for production
+- API Base URL: `https://api.hellotracks.com/v1`
 
 The node sends the API key in the `API-Key` header.
 
@@ -32,7 +32,7 @@ In a self-hosted n8n instance with community nodes enabled, go to `Settings -> C
 @hellotracks/n8n-nodes-hellotracks
 ```
 
-Restart n8n if prompted. Open n8n, create a Hellotracks API credential, set `API Base URL` to `https://qa.hellotracks.com/v1`, then add the Hellotracks node to a workflow.
+Restart n8n if prompted. Open n8n, create a Hellotracks API credential, set `API Base URL` to `https://api.hellotracks.com/v1`, then add the Hellotracks node to a workflow.
 
 ## Build And Pack
 

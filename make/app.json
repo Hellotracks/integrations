@@ -63,7 +63,7 @@
         "default": "https://api.hellotracks.com/v1",
         "editable": true,
         "required": false,
-        "help": "Use https://qa.hellotracks.com/v1 for QA testing."
+        "help": "Use https://api.hellotracks.com/v1 for production testing."
       }
     ],
     "communication": {
@@ -604,7 +604,7 @@
           "label": "Updated since",
           "default": 0,
           "required": false,
-          "help": "For QA, leave blank or use an epoch timestamp to backfill recent jobs."
+          "help": "For testing, leave blank or use an epoch timestamp to backfill recent jobs."
         },
         {
           "name": "limit",

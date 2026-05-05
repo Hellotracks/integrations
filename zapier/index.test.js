@@ -6,7 +6,7 @@ const App = require("./index.js");
 
 const authData = {
   apiKey: "secret",
-  apiBaseUrl: "https://qa.hellotracks.com/v1"
+  apiBaseUrl: "https://api.hellotracks.com/v1"
 };
 
 function makeZapier(payload) {
@@ -31,7 +31,7 @@ test("auth checks /auth/whoami with API key", async () => {
   const result = await App.authentication.test(helper.z, { authData });
 
   assert.equal(result.company.name, "Hellotracks QA");
-  assert.equal(helper.calls[0].url, "https://qa.hellotracks.com/v1/auth/whoami");
+  assert.equal(helper.calls[0].url, "https://api.hellotracks.com/v1/auth/whoami");
   assert.equal(helper.calls[0].method, "GET");
   assert.equal(helper.calls[0].headers["API-Key"], "secret");
 });
@@ -58,7 +58,7 @@ test("create job maps Zapier fields to the public job payload", async () => {
   });
 
   assert.equal(result.id, "job_1");
-  assert.equal(helper.calls[0].url, "https://qa.hellotracks.com/v1/jobs");
+  assert.equal(helper.calls[0].url, "https://api.hellotracks.com/v1/jobs");
   assert.equal(helper.calls[0].method, "POST");
   assert.deepEqual(JSON.parse(helper.calls[0].body), {
     title: "Install",
@@ -108,7 +108,7 @@ test("update job uses PATCH /jobs with id in the public job payload", async () =
     }
   });
 
-  assert.equal(helper.calls[0].url, "https://qa.hellotracks.com/v1/jobs");
+  assert.equal(helper.calls[0].url, "https://api.hellotracks.com/v1/jobs");
   assert.equal(helper.calls[0].method, "PATCH");
   assert.deepEqual(JSON.parse(helper.calls[0].body), {
     title: "Updated",
@@ -126,7 +126,7 @@ test("find job searches by externalId and returns an array", async () => {
   });
 
   assert.deepEqual(result, [{ id: "job_3", externalId: "crm-3" }]);
-  assert.equal(helper.calls[0].url, "https://qa.hellotracks.com/v1/jobs?externalId=crm-3&includeArchived=true&limit=1");
+  assert.equal(helper.calls[0].url, "https://api.hellotracks.com/v1/jobs?externalId=crm-3&includeArchived=true&limit=1");
   assert.equal(helper.calls[0].method, "GET");
 });
 
@@ -146,7 +146,7 @@ test("find member searches /members and returns exact matches as an array", asyn
   });
 
   assert.deepEqual(result, [{ id: "worker_2", username: "worker2", email: "two@example.com", name: "Two" }]);
-  assert.equal(helper.calls[0].url, "https://qa.hellotracks.com/v1/members?query=two%40example.com&max=50");
+  assert.equal(helper.calls[0].url, "https://api.hellotracks.com/v1/members?query=two%40example.com&max=50");
 });
 
 test("polling triggers request created and updated jobs from /jobs", async () => {
@@ -155,8 +155,8 @@ test("polling triggers request created and updated jobs from /jobs", async () =>
   await App.triggers.new_job.operation.perform(helper.z, { authData });
   await App.triggers.updated_job.operation.perform(helper.z, { authData });
 
-  assert.equal(helper.calls[0].url, "https://qa.hellotracks.com/v1/jobs?limit=100&includeArchived=true&createdSince=0");
-  assert.equal(helper.calls[1].url, "https://qa.hellotracks.com/v1/jobs?limit=100&includeArchived=true&updatedSince=0");
+  assert.equal(helper.calls[0].url, "https://api.hellotracks.com/v1/jobs?limit=100&includeArchived=true&createdSince=0");
+  assert.equal(helper.calls[1].url, "https://api.hellotracks.com/v1/jobs?limit=100&includeArchived=true&updatedSince=0");
 });
 
 test("completed trigger only returns successful jobs", async () => {

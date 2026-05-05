@@ -13,7 +13,7 @@ const {
 } = require("../dist/nodes/Hellotracks/helpers.js");
 
 test("normalizeBaseUrl removes trailing slashes", () => {
-  assert.equal(normalizeBaseUrl("https://qa.hellotracks.com/v1///"), "https://qa.hellotracks.com/v1");
+  assert.equal(normalizeBaseUrl("https://api.hellotracks.com/v1///"), "https://api.hellotracks.com/v1");
 });
 
 test("encodeQuery omits empty values", () => {

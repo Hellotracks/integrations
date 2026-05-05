@@ -1,4 +1,4 @@
-# Hellotracks Make private QA app
+# Hellotracks Make private app
 
 This folder contains the Make custom-app blueprint for the Hellotracks no-code connector.
 
@@ -16,8 +16,7 @@ It calls the public Hellotracks API directly. It does not use `ExternalIntegrati
 
 The app uses the same `/v1` public API contract as Zapier and n8n:
 
-- Production API base: `https://api.hellotracks.com/v1`
-- QA API base: `https://qa.hellotracks.com/v1`
+- API base: `https://api.hellotracks.com/v1`
 - Assignment field: `assigneeUsername`
 - External dedupe field: `externalId`
 - Job date field: `date`
@@ -54,27 +53,23 @@ This validates that `app.json` parses and still matches the intended Hellotracks
 
 Make stores custom apps as separate Base, Connection, Module, Interface, and Sample tabs. `app.json` is the source blueprint for those tabs, not a Runtime artifact.
 
-## QA credentials
+## Test credentials
 
 Create a connection in the Make scenario builder:
 
-- Hellotracks API key: use the dedicated QA key.
-- API Base URL: `https://qa.hellotracks.com/v1`
-
-Use production only after QA passes:
-
+- Hellotracks API key: use a dedicated test key.
 - API Base URL: `https://api.hellotracks.com/v1`
 
 ## QA smoke scenario
 
-Use disposable QA jobs only.
+Use disposable jobs only.
 
 1. `Find Member`
    - Query: known Hellotracks username or email.
    - Expected: one member result with `id`, `username`, `email`, and `name`.
 2. `Create Job`
-   - Title: `Make QA job`
-   - External ID: unique value, for example `make-qa-<timestamp>`
+   - Title: `Make test job`
+   - External ID: unique value, for example `make-test-<timestamp>`
    - Job date: `YYYY-MM-DD`
    - Assignee username: output from `Find Member`, or a known Hellotracks username.
    - Priority: blank, then repeat with `10`.
