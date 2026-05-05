@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.7
+
+- Mirror n8n credential and node files at the repository root for the Creator Portal verifier.
+
 ## 0.1.5
 
 - Prepare the package for n8n community verification.
