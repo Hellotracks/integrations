@@ -1,18 +1,19 @@
 {
   "name": "@hellotracks/zapier",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "private": true,
-  "description": "Hellotracks Zapier connector for private beta.",
+  "description": "Create, update, find, archive, and delete Hellotracks jobs from Zapier.",
+  "homepage": "https://hellotracks.com",
   "main": "index.js",
   "scripts": {
     "test": "node --test index.test.js",
-    "zapier:validate": "zapier validate",
-    "zapier:test": "zapier test"
+    "zapier:validate": "zapier-platform validate",
+    "zapier:test": "zapier-platform test"
   },
   "dependencies": {
-    "zapier-platform-core": "17.9.1"
+    "zapier-platform-core": "18.5.1"
   },
   "devDependencies": {
-    "zapier-platform-cli": "17.9.1"
+    "zapier-platform-cli": "18.5.1"
   }
 }

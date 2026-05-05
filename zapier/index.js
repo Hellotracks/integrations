@@ -33,7 +33,12 @@ const auth = (bundle) => ({
 
 const jobInputFields = [
   { key: "title", label: "Title", required: true },
-  { key: "externalId", label: "External ID", helpText: "Stable ID from the source app. Hellotracks uses this for upsert/dedupe." },
+  {
+    key: "externalId",
+    label: "External ID",
+    dynamic: "updated_job.externalId.title",
+    helpText: "Stable ID from the source app. Hellotracks uses this for upsert/dedupe. You can choose an existing value or map one from a previous Zap step."
+  },
   { key: "address", label: "Address" },
   { key: "notes", label: "Notes" },
   { key: "date", label: "Job date", helpText: "YYYY-MM-DD, for example 2026-04-30." },
@@ -45,6 +50,22 @@ const jobInputFields = [
   { key: "timeWindowStart", label: "Window start", helpText: "HH:mm time, for example 09:00." },
   { key: "timeWindowEnd", label: "Window end", helpText: "HH:mm time, for example 17:00." }
 ];
+
+const jobIdField = {
+  key: "id",
+  label: "Job ID",
+  required: true,
+  dynamic: "updated_job.id.title",
+  helpText: "Choose a recent Hellotracks job or map a Job ID from a previous Find Job or Create Job step."
+};
+
+const externalIdField = {
+  key: "externalId",
+  label: "External ID",
+  required: true,
+  dynamic: "updated_job.externalId.title",
+  helpText: "Choose an existing Hellotracks external ID or map one from a previous Zap step."
+};
 
 const jobOutputFields = [
   { key: "id", label: "Job ID" },
@@ -91,10 +112,19 @@ const asSearchResults = (result) => result ? [result] : [];
 const App = {
   version: require("./package.json").version,
   platformVersion: require("zapier-platform-core").version,
+  flags: {
+    cleanInputData: false
+  },
   authentication: {
     type: "custom",
     fields: [
-      { key: "apiKey", label: "Hellotracks API Key", required: true, type: "password" }
+      {
+        key: "apiKey",
+        label: "Hellotracks API Key",
+        required: true,
+        type: "password",
+        helpText: "Create an API key in Hellotracks under API keys, then paste it here. Help: https://hellotracks.com"
+      }
     ],
     test: async (z, bundle) => testAuth(fetchWithZapier(z), auth(bundle)),
     connectionLabel: "{{company.name}}"
@@ -165,7 +195,7 @@ const App = {
         description: "Updates a Hellotracks job by ID."
       },
       operation: {
-        inputFields: [{ key: "id", label: "Job ID", required: true }, ...jobInputFields],
+        inputFields: [jobIdField, ...jobInputFields],
         perform: (z, bundle) => updateJob(fetchWithZapier(z), auth(bundle), bundle.inputData.id, toJobPayload(bundle.inputData)),
         sample: { id: "job_id", title: "Updated job" },
         outputFields: jobOutputFields
@@ -179,7 +209,7 @@ const App = {
         description: "Archives a Hellotracks job by ID."
       },
       operation: {
-        inputFields: [{ key: "id", label: "Job ID", required: true }],
+        inputFields: [jobIdField],
         perform: (z, bundle) => archiveJob(fetchWithZapier(z), auth(bundle), bundle.inputData.id),
         sample: { id: "job_id" },
         outputFields: jobOutputFields
@@ -193,7 +223,7 @@ const App = {
         description: "Deletes a Hellotracks job by ID."
       },
       operation: {
-        inputFields: [{ key: "id", label: "Job ID", required: true }],
+        inputFields: [jobIdField],
         perform: (z, bundle) => deleteJob(fetchWithZapier(z), auth(bundle), bundle.inputData.id),
         sample: { id: "job_id" },
         outputFields: jobOutputFields
@@ -209,7 +239,7 @@ const App = {
         description: "Finds a Hellotracks job by External ID."
       },
       operation: {
-        inputFields: [{ key: "externalId", label: "External ID", required: true }],
+        inputFields: [externalIdField],
         perform: async (z, bundle) => asSearchResults(await findJobByExternalId(fetchWithZapier(z), auth(bundle), bundle.inputData.externalId)),
         sample: { id: "job_id", externalId: "external-123" },
         outputFields: jobOutputFields
