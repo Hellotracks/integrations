@@ -5,8 +5,7 @@ const test = require("node:test");
 const App = require("./index.js");
 
 const authData = {
-  apiKey: "secret",
-  apiBaseUrl: "https://api.hellotracks.com/v1"
+  apiKey: "secret"
 };
 
 function makeZapier(payload) {

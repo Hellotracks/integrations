@@ -2,10 +2,10 @@ import type { IDataObject } from 'n8n-workflow';
 
 export type HellotracksCredentials = {
 	apiKey: string;
-	apiBaseUrl: string;
+	apiBaseUrl?: string;
 };
 
-export function normalizeBaseUrl(baseUrl: string): string {
+export function normalizeBaseUrl(baseUrl?: string): string {
 	return (baseUrl || 'https://api.hellotracks.com/v1').replace(/\/+$/, '');
 }
 

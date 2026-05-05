@@ -1,6 +1,6 @@
 {
   "name": "@hellotracks/n8n-nodes-hellotracks",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Hellotracks n8n community node for private beta.",
   "main": "dist/nodes/Hellotracks/Hellotracks.node.js",
   "license": "MIT",

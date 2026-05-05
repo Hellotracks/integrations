@@ -28,7 +28,7 @@ const fetchWithZapier = (z) => async (url, request) => {
 
 const auth = (bundle) => ({
   apiKey: bundle.authData.apiKey,
-  apiBaseUrl: bundle.authData.apiBaseUrl || DEFAULT_API_BASE
+  apiBaseUrl: DEFAULT_API_BASE
 });
 
 const jobInputFields = [
@@ -94,8 +94,7 @@ const App = {
   authentication: {
     type: "custom",
     fields: [
-      { key: "apiKey", label: "Hellotracks API Key", required: true, type: "password" },
-      { key: "apiBaseUrl", label: "API Base URL", required: false, default: DEFAULT_API_BASE }
+      { key: "apiKey", label: "Hellotracks API Key", required: true, type: "password" }
     ],
     test: async (z, bundle) => testAuth(fetchWithZapier(z), auth(bundle)),
     connectionLabel: "{{company.name}}"
