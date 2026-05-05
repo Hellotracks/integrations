@@ -1,8 +1,23 @@
 # Hellotracks n8n Node
 
-Public beta n8n community node for Hellotracks power-user workflows.
+Use Hellotracks jobs in n8n workflows.
 
-This package targets self-hosted n8n QA first. It is published to npm as an unverified community node package and is not submitted to the n8n Cloud community catalog yet.
+The node connects n8n to the Hellotracks public API at
+`https://api.hellotracks.com/v1`.
+
+## Installation
+
+In a self-hosted n8n instance with community nodes enabled:
+
+1. Go to `Settings -> Community Nodes`.
+2. Click `Install`.
+3. Install:
+
+```text
+@hellotracks/n8n-nodes-hellotracks
+```
+
+Restart n8n if prompted. Then add the `Hellotracks` node to a workflow.
 
 ## Credentials
 
@@ -10,7 +25,8 @@ Create a Hellotracks credential with:
 
 - API Key: a Hellotracks public API key
 
-The node sends the API key in the `API-Key` header and uses `https://api.hellotracks.com/v1`.
+The node sends the API key in the `API-Key` request header. No API base URL
+setting is required.
 
 ## Operations
 
@@ -23,43 +39,45 @@ The node sends the API key in the `API-Key` header and uses `https://api.hellotr
 
 Create and update support `externalId`, `title`, `address`, `notes`, `date`, `assigneeUsername`, `priority`, contact fields, and time window fields.
 
-## Self-Hosted n8n Install
+`assigneeUsername` is the intended assignment field. Do not use `assigneeId`
+with this connector.
 
-In a self-hosted n8n instance with community nodes enabled, go to `Settings -> Community Nodes -> Install` and install:
+## Field Notes
 
-```text
-@hellotracks/n8n-nodes-hellotracks
-```
+- `External ID`: optional external dedupe key.
+- `Job Date`: `YYYY-MM-DD`, for example `2026-05-05`.
+- `Assignee Username`: Hellotracks username, often the member email or login name.
+- `Priority (0-10)`: optional integer from 0 to 10.
+- `Window Start` and `Window End`: `HH:mm`, for example `09:00`.
 
-Restart n8n if prompted. Open n8n, create a Hellotracks API credential, then add the Hellotracks node to a workflow.
+Blank optional fields are omitted before the node calls the Hellotracks API.
 
-## Build And Pack
+## Example Workflows
+
+- Create a Hellotracks job from a Google Sheets row.
+- Find a Hellotracks member by email, then create a job assigned to that member.
+- Find a job by External ID and update its address, notes, date, or assignee.
+- Archive or delete disposable jobs during testing.
+
+## Development
 
 ```bash
-cd /Users/bertschler/git/hellotracks/integrations/n8n
-npm install
+cd n8n
+npm ci
 npm test
-npm pack
+npm run lint
+npm pack --dry-run
 ```
 
-## Local Tarball Install
+## Publishing
 
-```bash
-mkdir -p ~/.n8n/nodes
-cd ~/.n8n/nodes
-npm install /Users/bertschler/git/hellotracks/integrations/n8n/hellotracks-n8n-nodes-hellotracks-0.1.0.tgz
-npx n8n@latest start
-```
+Verification-candidate releases are published from GitHub Actions with npm
+provenance. See `PUBLISHING.md`.
 
-## QA Smoke Test
+## Support
 
-Use disposable QA data:
+For product support, contact support@hellotracks.com.
 
-1. Create Job from manual input.
-2. Create Job from a Google Sheets row.
-3. Find Job by External ID.
-4. Find Member by email or username.
-5. Update Job using the found Job ID.
-6. Archive or delete only disposable jobs.
+For package bugs, open an issue at:
 
-`assigneeUsername` is the intended assignment field. Do not use `assigneeId` for this connector.
+https://github.com/Hellotracks/integrations/issues
